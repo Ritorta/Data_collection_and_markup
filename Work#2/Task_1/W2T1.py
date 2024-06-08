@@ -2,7 +2,6 @@
 # и извлечь информацию о всех книгах на сайте
 # во всех категориях: название, цену, количество товара в наличии 
 # (In stock (19 available)) в формате integer, описание.
-
 # Затем сохранить эту информацию в JSON-файле.
 
 import requests
@@ -60,16 +59,19 @@ def get_data(url):
         print(f"Error get data from — {url}: {e}")
         return[-1]
 
-
 # Переход по страницам сайта
-def scrape_site(pages):
+def scrape_site():
     try:
-        url = "http://books.toscrape.com/"
+        print(f"Start parsing data.")
+        url = "http://books.toscrape.com/" # адрес сайта
+        pages = 3 # Количество страниц
         all_data = []
         for page in range(1, pages + 1):
             current_page = url + f"catalogue/page-{page}.html"
+            print(f"Scraping data from page {page}, please stand by...")
             data = get_data(current_page)
             all_data.extend(data)
+        print(f"The parsing successfully completed.")    
         return all_data
     except Exception as e:
         print(f"Error scraping site: {e}")
@@ -77,13 +79,13 @@ def scrape_site(pages):
 # Сохранение в json
 def save_json(file_name, all_books_data):
     try:
-        with open(file_name, 'w', encoding='utf-8') as file:
+        with open("./Work#2/Task_1/" + file_name, 'w', encoding='utf-8') as file:
             json.dump(all_books_data, file, ensure_ascii=False, indent=4)
+            print(f"Data saved to ./Work#2/Task_1/{file_name}")
     except Exception as e:
-        print("Error save data to {file_name}: {e}")
+        print(f"Error save data to < {file_name} > : {e}")
 
-
-pages = 3 # Количество страниц
-
-all_books_data = scrape_site(pages)
-save_json("data_site_books.json", all_books_data)
+# Запуск прогарммы
+if __name__ == "__main__":
+    all_books_data = scrape_site()
+    save_json("data_site_books.json", all_books_data)
