@@ -16,7 +16,6 @@
 import requests
 from lxml import html
 import csv
-import pandas as pd
 
 # URL для запроса данных
 url = 'https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_and_their_capitals_in_native_languages'
@@ -48,7 +47,10 @@ for rows in table_rows:
 
     data_list.append(data)
 
-df = pd.DataFrame(data_list)
-
 file_path = './Work#4/Task_1/countries_and_capitals.csv'
-df.to_csv(file_path, index=False, encoding='utf-8-sig', sep=';')
+
+with open(file_path, 'w', newline='', encoding='utf-8') as file:
+    csvwriter = csv.writer(file)
+
+    for row in data_list:
+        csvwriter.writerow([row["Country (exonym)"], row["Capital (exonym)"], row["Country (endonym)"], row["Capital (endonym)"], row["Official or native language"]])
