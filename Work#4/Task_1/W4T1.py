@@ -39,13 +39,16 @@ data_list =[]
 for rows in table_rows:
     data = {}
 
-    data["Country (exonym)"] = rows.xpath(".//td/b/a/text()|.//td/i/a/text()|.//td/i/a/b/text()")
-    data["Capital (exonym)"] = rows.xpath(".//td[2]//text()")
-    data["Country (endonym)"] = rows.xpath(".//td[3]//text()")
-    data["Capital (endonym)"] = rows.xpath(".//td[4]//text()")
-    data["Official or native language"] = rows.xpath(".//td[5]//text()")
+
+    data["Country (exonym)"] = ''.join(map(str.strip, rows.xpath(".//th[1]//text() | .//td/i/b/a/text() | .//td/b/a/text() | .//td/i/a/text() | .//td/i/a/b/text()")))
+    data["Capital (exonym)"] = ''.join(map(str.strip, rows.xpath(".//th[2]//text() | .//td[2]/a/text()")))
+    data["Country (endonym)"] = ''.join(map(str.strip, rows.xpath(".//th[3]//text() | .//td[3]/b/text() | .//td[3]/b/span/span/text()")))
+    data["Capital (endonym)"] = ''.join(map(str.strip, rows.xpath(".//th[4]//text() | .//td[4]/b/text() | .//td[4]/b/span/span/text()")))
+    data["Official or native language"] = ''.join(map(str.strip, rows.xpath(".//th[5]//text() | .//td[5]/a/text()")))
 
     data_list.append(data)
 
 df = pd.DataFrame(data_list)
-df.to_csv('countries_and_capitals.csv', index=False, encoding='utf-8-sig')
+
+file_path = './Work#4/Task_1/countries_and_capitals.csv'
+df.to_csv(file_path, index=False, encoding='utf-8-sig', sep=';')
