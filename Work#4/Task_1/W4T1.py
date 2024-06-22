@@ -38,7 +38,6 @@ data_list =[]
 for rows in table_rows:
     data = {}
 
-
     data["Country (exonym)"] = ''.join(map(str.strip, rows.xpath(".//th[1]//text() | .//td/i/b/a/text() | .//td/b/a/text() | .//td/i/a/text() | .//td/i/a/b/text()")))
     data["Capital (exonym)"] = ''.join(map(str.strip, rows.xpath(".//th[2]//text() | .//td[2]/a/text()")))
     data["Country (endonym)"] = ''.join(map(str.strip, rows.xpath(".//th[3]//text() | .//td[3]/b/text() | .//td[3]/b/span/span/text()")))
