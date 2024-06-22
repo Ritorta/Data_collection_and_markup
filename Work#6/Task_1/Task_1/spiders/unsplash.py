@@ -1,3 +1,4 @@
+import os
 import scrapy
 
 # 2. Ваш паук должен уметь перемещаться по категориям фотографий и получать доступ к страницам отдельных фотографий.
@@ -16,23 +17,46 @@ class UnsplashSpider(scrapy.Spider):
 
 
     def parse(self, response):
-        for image_page in response.xpath('//div[@class="d95fI"]/figure//div/a[@class="Prxeh"]/@href').extract():
-            yield scrapy.Request(response.urljoin(image_page), self.parse_image)
+        # Проходимся по списку изображений
+        for image in response.xpath('//div[@class="d95fI"]/figure//div/a[@class="Prxeh"]/@href').extract():
+            # Соединяем ссылку на полное отдельное  изображение   
+            yield scrapy.Request(response.urljoin(image), self.parse_image)
 
-
+    # Поиск и парсинг размеров изображений
     def parse_image(self, response):
-        full_image = response.xpath('//img[@itemprop="thumbnailUrl"]/@srcset[contains(., " 2000w")]').extract_first()
-        if full_image:
-            yield scrapy.Request(response.urljoin(full_image), self.save_image)
-    
-    def save_image(self, response):
-        url_file_name = response.url.split('/')[-1]
-        with open(f'images/{url_file_name}', 'wb') as f:
-            f.write(response.body)
+        # Получаем все значения srcset для изображений
+        srcset_values = response.xpath('//div/button//div/img[@class="ApbSI z1piP vkrMA"]/@srcset').extract_first()
+        # Разделяем значения srcset и преобразуем их в список словарей с URL и размером
+        images = [{'url': src.split(' ')[0], 'size': int(src.split(' ')[1].replace('w', ''))}
+                for src in srcset_values.split(', ')]
+        
+        # Находим превью изображение 
+        pref_size_image = min(images, key=lambda x: x['size'])
+        if pref_size_image:
+            yield scrapy.Request(response.urljoin(pref_size_image['url']), self.save_preview_image)
 
-# //div[@class="d95fI"]//figure//img[@itemprop="thumbnailUrl"]
-# //div[@class="d95fI"]//figure//img[@itemprop="thumbnailUrl"]/@srcset
-# //img[@itemprop='thumbnailUrl']/@srcset[contains(., ' 200w,')]
-# //img[contains(@srcset, "2000w")]/@src
-# //img[@itemprop='thumbnailUrl']/@srcset[contains(., ' 1800w,')]
-# //img[@itemprop='thumbnailUrl']/@srcset[contains(., ' 2000w')]
+        # Находим полное изображение
+        full_size_image = max(images, key=lambda x: x['size'])
+        if full_size_image:
+            yield scrapy.Request(response.urljoin(full_size_image['url']), self.save_full_image)
+    
+    # Префикс превью изображений
+    def save_preview_image(self, response):
+        self.save_image(response, 'preview_')
+
+    # Префикс полноразмерных изображений
+    def save_full_image(self, response):
+        self.save_image(response, 'full_')
+
+    # Сохранение изображений
+    def save_image(self, response, prefix):
+        # Удаляем лишние из URL
+        url_file_name = os.path.basename(response.url.split('?')[0])
+        # Вручную добавляем расширение файлам
+        if not any(url_file_name.lower().endswith(ext) for ext in ['.jpg', '.png', '.jpeg']):
+            url_file_name += '.jpg'
+        # Добавляем префикс к имени файла
+        file_name = f'{prefix}{url_file_name}'
+        # Сохраняем файл
+        with open(f'images/{file_name}', 'wb') as f:
+            f.write(response.body)
