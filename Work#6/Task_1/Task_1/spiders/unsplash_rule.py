@@ -7,7 +7,7 @@ from ..items import UnsplItem
 from itemloaders.processors import MapCompose
 
 class UnsplashItemSpider(CrawlSpider):
-    name = "unsplash_item"
+    name = "unsplash_rule"
     allowed_domains = ["unsplash.com"]
     start_urls = ["https://unsplash.com/"]
 
@@ -29,8 +29,13 @@ class UnsplashItemSpider(CrawlSpider):
         if categori:
             loader.add_value('featured_in', categori)
 
-        image_urls = response.xpath('//*[@class="WxXog"]/img/@src').extract()
-        loader.add_value('image_urls', image_urls)
+        image_urls = response.xpath('//div[@class="NHQ0m"]/div[@class="d95fI"]/figure//div/a[@class="Prxeh"]/@href').extract()
+        full_image_urls = []
+        for url in image_urls:
+            full_url = response.urljoin(url)
+            full_image_urls.append(full_url)
+        loader.add_value('image_urls', full_image_urls)
+
         
 
         yield loader.load_item()
