@@ -16,6 +16,7 @@ import os
 from itemadapter import ItemAdapter
 import csv
 
+# Не работающая обработка данных
 class UnsplashCsvPipeline:
     def open_spider(self, spider):
         self.file = open('unsplash_images.csv', 'w', newline='', encoding='utf-8')
@@ -35,7 +36,7 @@ class UnsplashCsvPipeline:
         ])
         return item
 
-
+# Отдельное сохранениче через piplines
 # import scrapy
 # from scrapy.pipelines.images import ImagesPipeline
 
