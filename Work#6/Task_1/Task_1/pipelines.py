@@ -17,7 +17,6 @@ from itemadapter import ItemAdapter
 import csv
 
 class UnsplashCsvPipeline:
-
     def open_spider(self, spider):
         self.file = open('unsplash_images.csv', 'w', newline='', encoding='utf-8')
         self.writer = csv.writer(self.file)

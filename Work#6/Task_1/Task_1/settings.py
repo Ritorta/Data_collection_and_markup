@@ -66,7 +66,7 @@ ROBOTSTXT_OBEY = True
 ITEM_PIPELINES = {
     # 'scrapy.pipelines.images.ImagesPipeline': 1,
     'Task_1.pipelines.UnsplashImagesPipeline': 1,
-    'Task_1.pipelines.UnsplashCsvPipeline': 300,
+    'Task_1.pipelines.UnsplashCsvPipeline': 2,
 }
 
 IMAGES_STORE = 'images'
