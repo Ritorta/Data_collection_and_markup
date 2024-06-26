@@ -5,9 +5,48 @@
 
 
 # useful for handling different item types with a single interface
+# from itemadapter import ItemAdapter
+
+
+# class Task1Pipeline:
+#     def process_item(self, item, spider):
+#         return item
+
+import os
 from itemadapter import ItemAdapter
+import csv
 
+class UnsplashCsvPipeline:
 
-class Task1Pipeline:
+    def open_spider(self, spider):
+        self.file = open('unsplash_images.csv', 'w', newline='', encoding='utf-8')
+        self.writer = csv.writer(self.file)
+        self.writer.writerow(['image_urls', 'file_paths', 'name_image', 'featured_in'])
+
+    def close_spider(self, spider):
+        self.file.close()
+
     def process_item(self, item, spider):
+        adapter = ItemAdapter(item)
+        self.writer.writerow([
+            adapter['image_urls'][0],  # Предполагается, что image_urls содержит список URL
+            os.path.basename(adapter['image_urls'][0].split('?')[0]),  # Получаем имя файла из URL
+            adapter.get('name_image', [''])[0],  # Берем первое имя изображения, если оно есть
+            ', '.join(adapter.get('featured_in', []))  # Преобразуем список категорий в строку
+        ])
         return item
+
+
+import scrapy
+from scrapy.pipelines.images import ImagesPipeline
+
+class UnsplashImagesPipeline(ImagesPipeline): 
+    def get_media_requests(self, item, info):
+        for image_url in item.get('image_urls', []):
+            yield scrapy.Request(image_url)
+
+    def file_path(self, request, response=None, info=None, *, item=None):
+        category = item.get('featured_in', ['unknown_category'])[0]  # Берем первую категорию, если она есть
+        image_name = os.path.basename(request.url.split('?')[0])
+        return f"{category}/{image_name}"
+    

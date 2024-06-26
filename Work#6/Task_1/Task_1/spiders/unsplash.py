@@ -1,5 +1,8 @@
 import os
 import scrapy
+from scrapy.loader import ItemLoader
+from ..items import UnsplItem
+from itemloaders.processors import MapCompose
 
 # 2. Ваш паук должен уметь перемещаться по категориям фотографий и получать доступ к страницам отдельных фотографий.
 # 3. Определите элемент (Item) в Scrapy, который будет представлять изображение. 
@@ -39,7 +42,25 @@ class UnsplashSpider(scrapy.Spider):
         full_size_image = max(images, key=lambda x: x['size'])
         if full_size_image:
             yield scrapy.Request(response.urljoin(full_size_image['url']), self.save_full_image)
-    
+        
+        # Сбор данных в элементы
+        loader = ItemLoader(item=UnsplItem(), response=response)
+        loader.default_input_processor = MapCompose(str.strip)
+
+        # Парсим имя картинки
+        loader.add_xpath('name_image', '//div[@class="VgSmN"]//div/h1/text()')
+
+        # Парсим категорию картинки
+        categori_selectors = response.xpath('//div[@class="rx3zu _UNLg"]//div[@class="uK_kT"]/div//span/a/text()')
+        categori = [s.get().strip() for s in categori_selectors if s.get().strip()]
+        if categori:
+            loader.add_value('featured_in', categori)
+
+        # Парсим адрес картинки
+        loader.add_value('image_urls', pref_size_image['url'])
+
+        yield loader.load_item()
+
     # Префикс превью изображений
     def save_preview_image(self, response):
         self.save_image(response, 'preview_')
